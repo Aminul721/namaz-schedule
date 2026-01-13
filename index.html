@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namaz Schedule - Prayer Times</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">🕌</div>
+            <h1>Namaz Schedule</h1>
+            <p class="subtitle">Prayer Times for Today</p>
+        </div>
+
+        <div class="current-time-card">
+            <div class="current-time" id="currentTime">00:00:00</div>
+            <div class="current-date" id="currentDate">Loading...</div>
+            <div class="location" id="location">
+                <span class="location-icon">📍</span>
+                <span id="locationText">Detecting location...</span>
+            </div>
+        </div>
+
+        <div class="location-selector-card">
+            <div class="selector-header">
+                <span class="selector-icon">🗺️</span>
+                <h3>Manual Location Selection</h3>
+            </div>
+            <div class="selector-grid">
+                <div class="select-wrapper">
+                    <label for="divisionSelect">Division</label>
+                    <select id="divisionSelect">
+                        <option value="">Select Division</option>
+                    </select>
+                </div>
+                <div class="select-wrapper">
+                    <label for="districtSelect">District</label>
+                    <select id="districtSelect" disabled>
+                        <option value="">Select District</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn-apply" id="applyLocation" disabled>
+                Apply Location
+            </button>
+        </div>
+
+        <div class="next-prayer-card">
+            <div class="next-prayer-label">Next Prayer</div>
+            <div class="next-prayer-name" id="nextPrayerName">-</div>
+            <div class="next-prayer-time" id="nextPrayerTime">--:--</div>
+            <div class="time-remaining" id="timeRemaining">Calculating...</div>
+        </div>
+
+        <div class="prayer-times">
+            <div class="prayer-card" data-prayer="fajr">
+                <div class="prayer-icon">🌅</div>
+                <div class="prayer-info">
+                    <div class="prayer-name">Fajr</div>
+                    <div class="prayer-desc">Dawn</div>
+                </div>
+                <div class="prayer-time" id="fajrTime">--:--</div>
+            </div>
+
+            <div class="prayer-card" data-prayer="dhuhr">
+                <div class="prayer-icon">☀️</div>
+                <div class="prayer-info">
+                    <div class="prayer-name">Dhuhr</div>
+                    <div class="prayer-desc">Noon</div>
+                </div>
+                <div class="prayer-time" id="dhuhrTime">--:--</div>
+            </div>
+
+            <div class="prayer-card" data-prayer="asr">
+                <div class="prayer-icon">🌤️</div>
+                <div class="prayer-info">
+                    <div class="prayer-name">Asr</div>
+                    <div class="prayer-desc">Afternoon</div>
+                </div>
+                <div class="prayer-time" id="asrTime">--:--</div>
+            </div>
+
+            <div class="prayer-card" data-prayer="maghrib">
+                <div class="prayer-icon">🌇</div>
+                <div class="prayer-info">
+                    <div class="prayer-name">Maghrib</div>
+                    <div class="prayer-desc">Sunset</div>
+                </div>
+                <div class="prayer-time" id="maghribTime">--:--</div>
+            </div>
+
+            <div class="prayer-card" data-prayer="isha">
+                <div class="prayer-icon">🌙</div>
+                <div class="prayer-info">
+                    <div class="prayer-name">Isha</div>
+                    <div class="prayer-desc">Night</div>
+                </div>
+                <div class="prayer-time" id="ishaTime">--:--</div>
+            </div>
+        </div>
+
+        <div class="settings-card">
+            <div class="notification-toggle">
+                <div class="toggle-info">
+                    <span class="toggle-icon">🔔</span>
+                    <div>
+                        <div class="toggle-label">Prayer Notifications</div>
+                        <div class="toggle-desc">Get notified when it's time for salat</div>
+                    </div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="notificationToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <button class="btn-refresh" id="refreshLocation" title="Refresh Location">
+                <span>🔄</span> Refresh Location
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
