@@ -104,6 +104,9 @@ class NamazScheduleApp {
         // Setup notifications
         this.setupNotifications();
 
+        // Setup Ramadan section
+        this.setupRamadanSection();
+
         await this.getLocation();
         await this.fetchPrayerTimes();
 
@@ -113,6 +116,9 @@ class NamazScheduleApp {
         // Check for prayer time notifications every 30 seconds
         setInterval(() => this.checkPrayerTimeNotification(), 30000);
 
+        // Update Sehri/Iftar countdowns every second
+        setInterval(() => this.updateSehriIftarCountdown(), 1000);
+
         // Refresh location button
         document.getElementById('refreshLocation').addEventListener('click', async () => {
             if (!this.manualLocationMode) {
@@ -120,6 +126,146 @@ class NamazScheduleApp {
                 await this.fetchPrayerTimes();
             }
         });
+    }
+
+    setupRamadanSection() {
+        const divisionSelect = document.getElementById('divisionTableToggle');
+        const tableWrap = document.getElementById('divisionTableWrap');
+        let tableLoaded = false;
+
+        divisionSelect.addEventListener('change', async () => {
+            const selected = divisionSelect.value;
+
+            // Show table on first interaction
+            tableWrap.style.display = 'block';
+
+            if (!tableLoaded) {
+                tableLoaded = true;
+                await this.fetchDivisionTimes();
+            }
+
+            // Filter rows based on selection
+            const rows = document.querySelectorAll('#divisionTableBody tr');
+            rows.forEach(row => {
+                const divisionCell = row.querySelector('.td-division');
+                if (!divisionCell) return; // loading row
+                if (!selected || divisionCell.textContent === selected) {
+                    row.style.display = '';
+                    row.classList.toggle('current-division', !!selected);
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Update table header label
+            const header = document.querySelector('.division-table-header h3');
+            if (header) {
+                header.textContent = selected
+                    ? `📍 ${selected} Division — Today's Sehri & Iftar`
+                    : `📍 All Divisions — Today's Sehri & Iftar`;
+            }
+        });
+    }
+
+    updateSehriIftar() {
+        // Sehri = Fajr time, Iftar = Maghrib time
+        const sehri = this.prayerTimes.fajr;
+        const iftar = this.prayerTimes.maghrib;
+
+        if (sehri) document.getElementById('sehriTime').textContent = sehri;
+        if (iftar) document.getElementById('iftarTime').textContent = iftar;
+
+        this.updateSehriIftarCountdown();
+    }
+
+    updateSehriIftarCountdown() {
+        const sehri = this.prayerTimes.fajr;
+        const iftar = this.prayerTimes.maghrib;
+        if (!sehri || !iftar) return;
+
+        const now = new Date();
+        const nowMins = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+
+        const toMins = (t) => {
+            const [h, m] = t.split(':').map(Number);
+            return h * 60 + m;
+        };
+
+        const sehriMins = toMins(sehri);
+        const iftarMins = toMins(iftar);
+
+        const formatCountdown = (diffMins) => {
+            if (diffMins < 0) return 'Passed';
+            const h = Math.floor(diffMins / 60);
+            const m = Math.floor(diffMins % 60);
+            const s = Math.floor((diffMins * 60) % 60);
+            if (h > 0) return `${h}h ${m}m remaining`;
+            if (m > 0) return `${m}m ${s}s remaining`;
+            return `${s}s remaining`;
+        };
+
+        const sehriDiff = sehriMins - nowMins;
+        const iftarDiff = iftarMins - nowMins;
+
+        document.getElementById('sehriCountdown').textContent = formatCountdown(sehriDiff);
+        document.getElementById('iftarCountdown').textContent = formatCountdown(iftarDiff);
+    }
+
+    async fetchDivisionTimes() {
+        const tbody = document.getElementById('divisionTableBody');
+        tbody.innerHTML = '<tr><td colspan="3" class="loading-row">⏳ Fetching times for all divisions...</td></tr>';
+
+        // One representative city per division
+        const divisionCapitals = {
+            'Dhaka': { lat: 23.8103, lon: 90.4125 },
+            'Chittagong': { lat: 22.3569, lon: 91.7832 },
+            'Rajshahi': { lat: 24.3745, lon: 88.6042 },
+            'Khulna': { lat: 22.8456, lon: 89.5403 },
+            'Barisal': { lat: 22.7010, lon: 90.3535 },
+            'Sylhet': { lat: 24.8949, lon: 91.8687 },
+            'Rangpur': { lat: 25.7439, lon: 89.2752 },
+            'Mymensingh': { lat: 24.7471, lon: 90.4203 }
+        };
+
+        const today = new Date();
+        const dateStr = `${today.getDate().toString().padStart(2, '0')}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getFullYear()}`;
+
+        // Determine current division name from selected location
+        const divSelect = document.getElementById('divisionSelect');
+        const currentDivision = divSelect.value || 'Dhaka';
+
+        const rows = [];
+
+        try {
+            const promises = Object.entries(divisionCapitals).map(async ([name, coords]) => {
+                const url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${coords.lat}&longitude=${coords.lon}&method=2`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const timings = data.data.timings;
+                return {
+                    name,
+                    sehri: timings.Fajr,
+                    iftar: timings.Maghrib
+                };
+            });
+
+            const results = await Promise.all(promises);
+
+            tbody.innerHTML = '';
+            results.forEach(row => {
+                const isCurrent = row.name === currentDivision;
+                const tr = document.createElement('tr');
+                if (isCurrent) tr.classList.add('current-division');
+                tr.innerHTML = `
+                    <td class="td-division">${row.name}</td>
+                    <td class="td-sehri">${row.sehri}</td>
+                    <td class="td-iftar">${row.iftar}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (err) {
+            tbody.innerHTML = '<tr><td colspan="3" class="loading-row">⚠️ Could not load division times. Please try again.</td></tr>';
+        }
     }
 
     setupLocationSelectors() {
@@ -445,6 +591,7 @@ class NamazScheduleApp {
 
                 this.displayPrayerTimes();
                 this.updatePrayerStatus();
+                this.updateSehriIftar();
             } else {
                 throw new Error('Invalid API response');
             }
@@ -494,6 +641,7 @@ class NamazScheduleApp {
         this.prayerTimes = { fajr, dhuhr, asr, maghrib, isha };
         this.displayPrayerTimes();
         this.updatePrayerStatus();
+        this.updateSehriIftar();
     }
 
     displayPrayerTimes() {

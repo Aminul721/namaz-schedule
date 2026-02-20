@@ -103,6 +103,74 @@
             </div>
         </div>
 
+        <!-- Ramadan Sehri & Iftar Section -->
+        <div class="ramadan-section">
+            <div class="ramadan-header">
+                <div class="ramadan-title-wrap">
+                    <span class="ramadan-moon">🌙</span>
+                    <div>
+                        <h2 class="ramadan-title">Ramadan Schedule</h2>
+                        <p class="ramadan-subtitle">Sehri &amp; Iftar Times</p>
+                    </div>
+                </div>
+                <select class="select-division" id="divisionTableToggle">
+                    <option value="">🗺️ All Divisions</option>
+                    <option value="Dhaka">Dhaka</option>
+                    <option value="Chittagong">Chittagong</option>
+                    <option value="Rajshahi">Rajshahi</option>
+                    <option value="Khulna">Khulna</option>
+                    <option value="Barisal">Barisal</option>
+                    <option value="Sylhet">Sylhet</option>
+                    <option value="Rangpur">Rangpur</option>
+                    <option value="Mymensingh">Mymensingh</option>
+                </select>
+            </div>
+
+            <!-- Current Location Sehri & Iftar -->
+            <div class="sehri-iftar-cards">
+                <div class="si-card sehri">
+                    <div class="si-icon">🌄</div>
+                    <div class="si-label">Sehri Ends</div>
+                    <div class="si-time" id="sehriTime">--:--</div>
+                    <div class="si-countdown" id="sehriCountdown">--</div>
+                </div>
+                <div class="si-divider">
+                    <div class="si-divider-line"></div>
+                    <div class="si-divider-icon">☪️</div>
+                    <div class="si-divider-line"></div>
+                </div>
+                <div class="si-card iftar">
+                    <div class="si-icon">🌅</div>
+                    <div class="si-label">Iftar Time</div>
+                    <div class="si-time" id="iftarTime">--:--</div>
+                    <div class="si-countdown" id="iftarCountdown">--</div>
+                </div>
+            </div>
+
+            <!-- Division-wise Table (hidden by default) -->
+            <div class="division-table-wrap" id="divisionTableWrap" style="display:none;">
+                <div class="division-table-header">
+                    <h3>📍 All Divisions — Today's Sehri &amp; Iftar</h3>
+                </div>
+                <div class="division-table-scroll">
+                    <table class="division-table" id="divisionTable">
+                        <thead>
+                            <tr>
+                                <th>Division</th>
+                                <th>🌄 Sehri Ends</th>
+                                <th>🌅 Iftar Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="divisionTableBody">
+                            <tr>
+                                <td colspan="3" class="loading-row">⏳ Loading times...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <div class="settings-card">
             <div class="notification-toggle">
                 <div class="toggle-info">

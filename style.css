@@ -423,6 +423,275 @@ h1 {
     transform: none;
 }
 
+/* ===== RAMADAN SECTION ===== */
+.ramadan-section {
+    background: linear-gradient(135deg, rgba(255, 167, 38, 0.08), rgba(255, 87, 34, 0.08));
+    border: 1px solid rgba(255, 167, 38, 0.25);
+    border-radius: 24px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow), 0 0 30px rgba(255, 167, 38, 0.08);
+    animation: fadeInUp 0.6s ease-out 0.5s both;
+    position: relative;
+    overflow: hidden;
+}
+
+.ramadan-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 167, 38, 0.05), transparent);
+    animation: shimmer 4s infinite;
+    pointer-events: none;
+}
+
+.ramadan-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ramadan-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.ramadan-moon {
+    font-size: 36px;
+    animation: float 3s ease-in-out infinite;
+    display: inline-block;
+}
+
+.ramadan-title {
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #FFA726, #FF7043);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 4px;
+}
+
+.ramadan-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.select-division {
+    background: rgba(255, 167, 38, 0.12);
+    border: 1px solid rgba(255, 167, 38, 0.35);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #FFA726;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23FFA726' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+    white-space: nowrap;
+}
+
+.select-division:hover {
+    background-color: rgba(255, 167, 38, 0.22);
+    box-shadow: 0 4px 12px rgba(255, 167, 38, 0.2);
+}
+
+.select-division:focus {
+    box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.2);
+    border-color: #FFA726;
+}
+
+.select-division option {
+    background: #1e293b;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+/* Sehri & Iftar cards */
+.sehri-iftar-cards {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 167, 38, 0.15);
+}
+
+.si-card {
+    flex: 1;
+    padding: 24px 20px;
+    text-align: center;
+}
+
+.si-card.sehri {
+    background: linear-gradient(135deg, rgba(100, 181, 246, 0.10), rgba(100, 181, 246, 0.03));
+}
+
+.si-card.iftar {
+    background: linear-gradient(135deg, rgba(255, 167, 38, 0.10), rgba(255, 87, 34, 0.03));
+}
+
+.si-icon {
+    font-size: 34px;
+    margin-bottom: 8px;
+}
+
+.si-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.si-time {
+    font-size: 36px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -1px;
+    color: #FFA726;
+    margin-bottom: 6px;
+}
+
+.si-card.sehri .si-time {
+    color: #64B5F6;
+}
+
+.si-countdown {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.si-divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 6px;
+}
+
+.si-divider-line {
+    width: 1px;
+    flex: 1;
+    background: rgba(255, 167, 38, 0.25);
+    min-height: 24px;
+}
+
+.si-divider-icon {
+    font-size: 22px;
+}
+
+/* Division Table */
+.division-table-wrap {
+    margin-top: 20px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 167, 38, 0.2);
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.division-table-header {
+    background: rgba(255, 167, 38, 0.1);
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(255, 167, 38, 0.15);
+}
+
+.division-table-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #FFA726;
+    margin: 0;
+    letter-spacing: 0.3px;
+}
+
+.division-table-scroll {
+    overflow-x: auto;
+}
+
+.division-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.division-table thead tr {
+    background: rgba(255, 167, 38, 0.06);
+}
+
+.division-table th {
+    padding: 12px 20px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.division-table td {
+    padding: 13px 20px;
+    color: var(--text-primary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    vertical-align: middle;
+}
+
+.division-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.division-table tbody tr:hover {
+    background: rgba(255, 167, 38, 0.06);
+}
+
+.division-table tbody tr.current-division {
+    background: rgba(255, 167, 38, 0.12);
+}
+
+.division-table tbody tr.current-division td:first-child::before {
+    content: '📍 ';
+}
+
+.td-division {
+    font-weight: 600;
+}
+
+.td-sehri {
+    color: #64B5F6;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.td-iftar {
+    color: #FFA726;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.loading-row {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 24px !important;
+}
+
 .settings-card {
     animation: fadeInUp 0.6s ease-out 0.55s both;
 }
