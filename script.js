@@ -91,6 +91,8 @@ class NamazScheduleApp {
         this.manualLocationMode = false;
         this.notificationsEnabled = false;
         this.lastNotifiedPrayer = null;
+        this.currentDivision = null;
+        this.currentDistrict = null;
         this.init();
     }
 
@@ -104,11 +106,16 @@ class NamazScheduleApp {
         // Setup notifications
         this.setupNotifications();
 
+        // Check if it's Ramadan and toggle section visibility
+        await this.checkRamadanMonth();
+
         // Setup Ramadan section
         this.setupRamadanSection();
 
         await this.getLocation();
         await this.fetchPrayerTimes();
+        await this.fetchWeather();
+        this.updateDivisionDistrictDisplay();
 
         // Update prayer status every minute
         setInterval(() => this.updatePrayerStatus(), 60000);
@@ -119,13 +126,115 @@ class NamazScheduleApp {
         // Update Sehri/Iftar countdowns every second
         setInterval(() => this.updateSehriIftarCountdown(), 1000);
 
+        // Update weather every 10 minutes
+        setInterval(() => this.fetchWeather(), 600000);
+
         // Refresh location button
         document.getElementById('refreshLocation').addEventListener('click', async () => {
             if (!this.manualLocationMode) {
                 await this.getLocation();
                 await this.fetchPrayerTimes();
+                await this.fetchWeather();
             }
         });
+    }
+
+    async checkRamadanMonth() {
+        try {
+            const now = new Date();
+            const timestamp = Math.floor(now.getTime() / 1000);
+
+            // Use default location to get Islamic date
+            const response = await fetch(
+                `https://api.aladhan.com/v1/timings/${timestamp}?latitude=23.8103&longitude=90.4125&method=2`
+            );
+
+            if (!response.ok) throw new Error('API request failed');
+
+            const data = await response.json();
+
+            if (data.data && data.data.date && data.data.date.hijri) {
+                const islamicMonth = data.data.date.hijri.month.number;
+                const ramadanSection = document.querySelector('.ramadan-section');
+                
+                // Ramadan is the 9th Islamic month
+                if (islamicMonth === 9) {
+                    // Show Ramadan section
+                    if (ramadanSection) {
+                        ramadanSection.style.display = 'block';
+                    }
+                } else {
+                    // Hide Ramadan section
+                    if (ramadanSection) {
+                        ramadanSection.style.display = 'none';
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn('Could not determine if it\'s Ramadan:', error);
+            // Default to showing Ramadan section on error
+            const ramadanSection = document.querySelector('.ramadan-section');
+            if (ramadanSection) {
+                ramadanSection.style.display = 'block';
+            }
+        }
+    }
+
+    async fetchWeather() {
+        if (!this.latitude || !this.longitude) return;
+
+        try {
+            // Using Open-Meteo API (free, no key needed)
+            const response = await fetch(
+                `https://api.open-meteo.com/v1/forecast?latitude=${this.latitude}&longitude=${this.longitude}&current=temperature_2m,weather_code&temperature_unit=celsius&timezone=auto`
+            );
+
+            if (!response.ok) throw new Error('Weather API request failed');
+
+            const data = await response.json();
+            const current = data.current;
+
+            if (current && current.temperature_2m !== undefined) {
+                const celsius = Math.round(current.temperature_2m);
+                const fahrenheit = Math.round((celsius * 9/5) + 32);
+                
+                // Weather icons based on weather code
+                const weatherIcons = {
+                    0: '☀️',      // Clear sky
+                    1: '🌤️',     // Mainly clear
+                    2: '⛅',     // Partly cloudy
+                    3: '☁️',     // Overcast
+                    45: '🌫️',    // Foggy
+                    48: '🌫️',    // Depositing rime fog
+                    51: '🌦️',    // Drizzle
+                    61: '🌧️',    // Rain
+                    71: '🌨️',    // Snow
+                    80: '🌧️',    // Rain showers
+                    95: '⛈️'     // Thunderstorm
+                };
+
+                const icon = weatherIcons[current.weather_code] || '🌡️';
+
+                document.getElementById('weatherIcon').textContent = icon;
+                document.getElementById('weatherTemp').textContent = `${celsius}°C / ${fahrenheit}°F`;
+            }
+        } catch (error) {
+            console.warn('Could not fetch weather:', error);
+        }
+    }
+
+    updateDivisionDistrictDisplay() {
+        const divisionSelect = document.getElementById('divisionSelect');
+        const districtSelect = document.getElementById('districtSelect');
+        
+        const division = divisionSelect.value || this.currentDivision || 'Unknown';
+        const district = districtSelect.value || this.currentDistrict || 'Unknown';
+        
+        const displayText = division !== 'Unknown' && district !== 'Unknown' 
+            ? `${district}, ${division}`
+            : division;
+            
+        document.getElementById('currentDivisionDistrict').textContent = displayText;
     }
 
     setupRamadanSection() {
@@ -305,6 +414,12 @@ class NamazScheduleApp {
         // District change event
         districtSelect.addEventListener('change', () => {
             applyButton.disabled = !districtSelect.value;
+            this.updateDivisionDistrictDisplay();
+        });
+
+        // Division change event updates display
+        divisionSelect.addEventListener('change', () => {
+            this.updateDivisionDistrictDisplay();
         });
 
         // Apply location button
@@ -313,13 +428,17 @@ class NamazScheduleApp {
             const district = districtSelect.value;
 
             if (division && district) {
+                this.currentDivision = division;
+                this.currentDistrict = district;
                 const location = bangladeshLocations[division][district];
                 this.latitude = location.lat;
                 this.longitude = location.lon;
                 this.manualLocationMode = true;
 
                 document.getElementById('locationText').textContent = `${district}, ${division}`;
+                this.updateDivisionDistrictDisplay();
                 await this.fetchPrayerTimes();
+                await this.fetchWeather();
             }
         });
     }
@@ -540,7 +659,29 @@ class NamazScheduleApp {
         // Default to Dhaka, Bangladesh
         this.latitude = 23.8103;
         this.longitude = 90.4125;
+        this.currentDivision = 'Dhaka';
+        this.currentDistrict = 'Dhaka';
         document.getElementById('locationText').textContent = 'Dhaka, Bangladesh (Default)';
+    }
+
+    findClosestDistrict(lat, lon) {
+        let closest = null;
+        let minDistance = Infinity;
+
+        Object.entries(bangladeshLocations).forEach(([division, districts]) => {
+            Object.entries(districts).forEach(([district, coords]) => {
+                // Simple distance calculation
+                const distance = Math.sqrt(
+                    Math.pow(coords.lat - lat, 2) + Math.pow(coords.lon - lon, 2)
+                );
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closest = { division, district };
+                }
+            });
+        });
+
+        return closest;
     }
 
     async getLocationName(lat, lon) {
@@ -555,8 +696,22 @@ class NamazScheduleApp {
             const country = data.address.country || '';
 
             document.getElementById('locationText').textContent = `${city}, ${country}`;
+
+            // Try to find closest district
+            const closest = this.findClosestDistrict(lat, lon);
+            if (closest) {
+                this.currentDivision = closest.division;
+                this.currentDistrict = closest.district;
+            }
         } catch (error) {
             document.getElementById('locationText').textContent = `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
+            
+            // Try to find closest district even if reverse geocoding fails
+            const closest = this.findClosestDistrict(lat, lon);
+            if (closest) {
+                this.currentDivision = closest.division;
+                this.currentDistrict = closest.district;
+            }
         }
     }
 
