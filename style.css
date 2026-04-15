@@ -457,8 +457,14 @@ h1 {
     padding: 12px;
 }
 
+.button-group {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+}
+
 .btn-apply {
-    width: 100%;
+    flex: 1;
     background: linear-gradient(135deg, var(--primary-dark), var(--primary));
     border: none;
     border-radius: 12px;
@@ -485,6 +491,53 @@ h1 {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
+}
+
+.btn-reset {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 14px 20px;
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+}
+
+.btn-reset:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+.btn-reset:active {
+    transform: translateY(0);
+}
+
+/* Manual Override Mode Indicator */
+.location-selector-card.manual-override-active {
+    border: 2px solid var(--primary-light);
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.08), rgba(76, 175, 80, 0.04));
+    box-shadow: var(--shadow), 0 0 20px rgba(76, 175, 80, 0.2);
+}
+
+.location-selector-card.manual-override-active::after {
+    content: '✓ Manual Override Active';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary-light);
+    background: rgba(76, 175, 80, 0.15);
+    padding: 4px 12px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* ===== RAMADAN SECTION ===== */

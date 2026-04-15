@@ -381,6 +381,7 @@ class NamazScheduleApp {
         const divisionSelect = document.getElementById('divisionSelect');
         const districtSelect = document.getElementById('districtSelect');
         const applyButton = document.getElementById('applyLocation');
+        const resetButton = document.getElementById('resetLocation');
 
         // Populate divisions
         Object.keys(bangladeshLocations).forEach(division => {
@@ -436,10 +437,45 @@ class NamazScheduleApp {
                 this.manualLocationMode = true;
 
                 document.getElementById('locationText').textContent = `${district}, ${division}`;
+                
+                // Immediately update weather widget location display
+                const displayText = `${district}, ${division}`;
+                document.getElementById('currentDivisionDistrict').textContent = displayText;
+                
+                // Add visual indicator for manual override
+                const selectorCard = document.querySelector('.location-selector-card');
+                if (selectorCard) {
+                    selectorCard.classList.add('manual-override-active');
+                }
+                
                 this.updateDivisionDistrictDisplay();
                 await this.fetchPrayerTimes();
                 await this.fetchWeather();
             }
+        });
+
+        // Reset to auto-detection button
+        resetButton.addEventListener('click', async () => {
+            this.manualLocationMode = false;
+            
+            // Remove visual indicator
+            const selectorCard = document.querySelector('.location-selector-card');
+            if (selectorCard) {
+                selectorCard.classList.remove('manual-override-active');
+            }
+            
+            // Clear selection
+            divisionSelect.value = '';
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            districtSelect.disabled = true;
+            applyButton.disabled = true;
+            
+            // Go back to auto-detection
+            document.getElementById('locationText').textContent = 'Detecting location...';
+            document.getElementById('currentDivisionDistrict').textContent = 'Detecting...';
+            await this.getLocation();
+            await this.fetchPrayerTimes();
+            await this.fetchWeather();
         });
     }
 
@@ -631,6 +667,7 @@ class NamazScheduleApp {
         document.getElementById('locationText').textContent = 'Detecting location...';
 
         if (!navigator.geolocation) {
+            console.warn('Geolocation not supported by this browser');
             this.useDefaultLocation();
             return;
         }
@@ -638,8 +675,9 @@ class NamazScheduleApp {
         try {
             const position = await new Promise((resolve, reject) => {
                 navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    timeout: 10000,
-                    maximumAge: 0
+                    timeout: 15000,  // Increased to 15 seconds
+                    maximumAge: 300000,  // Allow cached position up to 5 minutes
+                    enableHighAccuracy: false  // Faster but less accurate
                 });
             });
 
@@ -650,7 +688,17 @@ class NamazScheduleApp {
             await this.getLocationName(this.latitude, this.longitude);
 
         } catch (error) {
-            console.error('Geolocation error:', error);
+            // Handle different geolocation error types
+            const errorMessages = {
+                1: 'Permission denied. Please enable location access in your browser settings.',
+                2: 'Position unavailable. Unable to retrieve your location.',
+                3: 'Geolocation request timed out.'
+            };
+            
+            const errorMsg = errorMessages[error.code] || 'Unknown geolocation error';
+            console.warn(`Geolocation error (${error.code}): ${errorMsg}`, error);
+            console.warn('Falling back to default location (Dhaka)');
+            
             this.useDefaultLocation();
         }
     }
@@ -662,6 +710,10 @@ class NamazScheduleApp {
         this.currentDivision = 'Dhaka';
         this.currentDistrict = 'Dhaka';
         document.getElementById('locationText').textContent = 'Dhaka, Bangladesh (Default)';
+        document.getElementById('currentDivisionDistrict').textContent = 'Dhaka, Dhaka';
+        // Auto-populate the selector dropdowns with default location
+        this.populateSelectorsWithDetectedLocation('Dhaka', 'Dhaka');
+        console.log('Using default location: Dhaka, Bangladesh');
     }
 
     findClosestDistrict(lat, lon) {
@@ -702,6 +754,8 @@ class NamazScheduleApp {
             if (closest) {
                 this.currentDivision = closest.division;
                 this.currentDistrict = closest.district;
+                // Auto-populate the selector dropdowns with detected location
+                this.populateSelectorsWithDetectedLocation(closest.division, closest.district);
             }
         } catch (error) {
             document.getElementById('locationText').textContent = `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
@@ -711,7 +765,36 @@ class NamazScheduleApp {
             if (closest) {
                 this.currentDivision = closest.division;
                 this.currentDistrict = closest.district;
+                // Auto-populate the selector dropdowns with detected location
+                this.populateSelectorsWithDetectedLocation(closest.division, closest.district);
             }
+        }
+    }
+
+    populateSelectorsWithDetectedLocation(division, district) {
+        const divisionSelect = document.getElementById('divisionSelect');
+        const districtSelect = document.getElementById('districtSelect');
+        const applyButton = document.getElementById('applyLocation');
+
+        // Set division selector
+        divisionSelect.value = division;
+        
+        // Populate districts for the selected division
+        districtSelect.innerHTML = '<option value="">Select District</option>';
+        if (division && bangladeshLocations[division]) {
+            districtSelect.disabled = false;
+            const districts = bangladeshLocations[division];
+            
+            Object.keys(districts).forEach(dist => {
+                const option = document.createElement('option');
+                option.value = dist;
+                option.textContent = dist;
+                districtSelect.appendChild(option);
+            });
+            
+            // Set district selector to detected district
+            districtSelect.value = district;
+            applyButton.disabled = false;
         }
     }
 
